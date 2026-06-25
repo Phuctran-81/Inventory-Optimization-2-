@@ -58,18 +58,25 @@ Trong đó:
 - Category A: 90 - 100%
 - Category B: 75 - 100%
 - Category C: 50 - 100%
-### Lost sales are assumed when on-hàn inventory smaller than sales.
+### Lost sales are assumed when on-hand inventory smaller than sales.
 ### Inventory review schedule:
 - 7-day shelf life: Monday, Wednesday, Friday
 - 14-day shelf life: Monday, Thursday
 - 30-day shelf life: Monday, Thursday
+
+### Dataset Size
+- 5 Year History Sales Data with 913.000 records.
+- 10 Stores.
+- 50 Items.
+- Simulate inventory review process in last year sales data with 182.000 records.
 
 ## 4. Methodology
 ### 4.1 Demand Forcasting (SQL)
 ### a. Objective
 Estimate expected demand for each SKU-store combination on future review periods.
 ### b. Forecast Logic
-<img width="573" height="43" alt="image" src="https://github.com/user-attachments/assets/3ad6bbc5-4628-4c68-8f2e-d62b4b267e11" />
+<img width="727" height="54" alt="image" src="https://github.com/user-attachments/assets/d9669178-5cd5-46e6-baa7-de7b14830144" />
+
 
 Where: 
 - Rolling30D Average: Average sales of the most recent 30 days. 
@@ -83,7 +90,7 @@ The replenishment model follows a Periodic Review Order-Up-To Policy.
 ### b. Inventory Position
 Inventory decisions are based on Inventory Position rather than physical inventory.
 
-<img width="1075" height="64" alt="image" src="https://github.com/user-attachments/assets/20c06409-8832-4c1f-93be-482ac6b522d8" />
+<img width="676" height="43" alt="image" src="https://github.com/user-attachments/assets/27722cc5-ac64-4eb9-9900-c650518047b8" />
 
 ### c. Review Schedule
 Different review frequencies are applied based on product shelf life. More frequent reviews are used for shorter-life products to reduce expiry risk.
@@ -103,7 +110,8 @@ To prevent future data leakage, the model only uses forecast values generated fr
 
 ### e. Order Trigger
 An order is generated only during review date. This replenishes inventory back to the target level while avoiding overstocking.
-<img width="539" height="128" alt="image" src="https://github.com/user-attachments/assets/5a8d820e-a5fb-4e27-bf23-e364ead44513" />
+<img width="626" height="154" alt="image" src="https://github.com/user-attachments/assets/76af0e89-489f-40ef-99a2-dac7dc4d60b3" />
+
 
 ### 4.3 Inventory simulation (Python)
 ### a. Objective
@@ -123,7 +131,8 @@ For each simulated day:
 - Remove expired inventory batches.
 - Receive incoming purchase order (if order arrival date equals current date)
 #### Step 2: Calculate Inventory Position
-<img width="1075" height="64" alt="image" src="https://github.com/user-attachments/assets/d5ac45e8-e451-4528-892e-43ca69f3de56" />
+<img width="676" height="43" alt="image" src="https://github.com/user-attachments/assets/27722cc5-ac64-4eb9-9900-c650518047b8" />
+
 
 #### Step 3: Executive inventory review
 If current day is a scheduled review date:
@@ -132,27 +141,14 @@ If current day is a scheduled review date:
 - Schedule future delivery
 
 
+## 5. Architecture Diagram
+### 5.1 End-to-End Data Pipeline Architecture
+
+<img width="9310" height="4560" alt="Project Diagram" src="https://github.com/user-attachments/assets/2814ff3e-3d6c-4740-b110-5894dc7069af" />
 
 
+### 5.2 Inventory Optimization Architecture
 
-## II. Method of implementation
-<img width="931" height="536" alt="Project Diagram" src="https://github.com/user-attachments/assets/d2edc24a-99ca-4ec8-9b7d-55939c2c719d" />
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/cd759cdb-f933-4f7d-9eff-e294616ca72a" />
 
-### Dataset Size
-- 5 Year History Sales Data with 913.000 records.
-- 10 Stores.
-- 50 Items.
-- Simulate inventory review process in last year sales data with 182.000 records.
-### 1. Calculate Forcasted Demand in SQL
-- Using SQL to calculate forecasted demand for each day of the upcoming week.
-- Forecasted Demand calculatd by:
-  Rolling_30d_average * Seasonality Index + Z * MAE \
-  Rolling_30d_average : the average demand of the most 30 days. \
-  Seasonality Index: The proportion of sales by day of the week compared to the weekly average.
-### 2. Simulate processes of inventory review by Python.
-  - Update inventory statement after deducting last sales and expiry batch. Add new inventory batch, if order arrivals.
-  - Update Inventory Position.
-  - inventory review date is Monday and Thursday for 14 and 30 shelf life day item. Monday, Wednesday and Friday is 7 shelf life item.
-  - In inventory review date, if Inventory Position equals or belows ROP, implement calculating TSL - ROP and Order Quantity for next period.
-  -  TSL will be calculated to cover R + R + Leadtime (R is the number of days to Next inventory review dates)
-  -  ROP will be calculated to cover R + Leadtime.
+
